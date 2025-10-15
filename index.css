@@ -1,0 +1,131 @@
+/* Index-specific styling (keeps visual compact) */
+:root {
+  --bg: #071023;
+  --panel: rgba(255, 255, 255, 0.02);
+  --muted: #9aa6bd;
+  --btn: #2563eb;
+}
+body {
+  background: linear-gradient(180deg, #071023 0%, #061022 100%);
+  color: var(--btn);
+}
+.wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.card {
+  background: var(--panel);
+  padding: 28px;
+  border-radius: 12px;
+  max-width: 920px;
+  width: 100%;
+  box-shadow: 0 6px 24px rgba(2, 6, 23, 0.6);
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+}
+.logo {
+  width: 54px;
+  height: 54px;
+  border-radius: 10px;
+  background: #eef2ff;
+  color: #2563eb;
+}
+h1 {
+  margin: 0;
+  font-size: 20px;
+  color: #e6eef8;
+}
+p.lead {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+.btn-large {
+  background: var(--btn);
+  color: white;
+  padding: 12px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+.btn-ghost {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--muted);
+  padding: 10px;
+  border-radius: 10px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.meta {
+  color: var(--muted);
+  font-size: 13px;
+}
+.right {
+  background: linear-gradient(180deg, #071231, #08122a);
+  padding: 14px;
+  border-radius: 10px;
+}
+ul.features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+ul.features li {
+  background: rgba(255, 255, 255, 0.02);
+  padding: 10px;
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+/* Login card styles */
+.login-card {
+  margin-top: 12px;
+}
+.role-tabs { display:flex; gap:8px; margin-bottom:8px }
+.tab {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.03);
+  color: var(--muted);
+  cursor: pointer;
+}
+.tab.active { background: rgba(255,255,255,0.03); color: #fff; border-color: rgba(255,255,255,0.08) }
+label { display:block; margin-top:8px; color: var(--muted); font-size:13px }
+input[type="email"], input[type="password"] {
+  width:100%; padding:10px; margin-top:6px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); background:transparent; color: #e6eef8
+}
+footer {
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+@media (max-width: 880px) {
+  .card {
+    grid-template-columns: 1fr;
+  }
+  .right {
+    order: -1;
+  }
+}

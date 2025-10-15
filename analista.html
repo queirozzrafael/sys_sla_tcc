@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Sistema de Chamados — Analista</title>
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="style_analista.css">
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <div class="logo">AI</div>
+        <div>
+          <div style="font-weight: 800">Painel do Analista</div>
+          <div style="font-size: 13px; color: var(--muted)">
+            Triagem inteligente • Chamados priorizados pela IA
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center">
+        <button class="ghost" onclick="bulkRefresh()">Atualizar</button>
+  <a class="ghost" href="../index.html" onclick="localStorage.removeItem('currentUser')">Início</a>
+        <div id="analystBadge"
+          style="
+            background: rgba(255, 255, 255, 0.02);
+            padding: 8px 10px;
+            border-radius: 8px;
+            display:flex; gap:8px; align-items:center
+          "
+        >
+          Analista: João
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <div class="grid">
+        <!-- Sidebar -->
+        <aside class="panel">
+          <div style="font-weight: 700; margin-bottom: 8px">
+            Filtrar Chamados
+          </div>
+          <div class="side-menu">
+            <div class="menu-item active" onclick="showView('fila')">
+              Fila Prioritária
+              <span class="badge" id="countCrit">0 críticos</span>
+            </div>
+            <div class="menu-item" onclick="showView('todos')">
+              Todos os Chamados
+            </div>
+            <div class="menu-item" onclick="showView('pendentes')">
+              Pendentes de Revisão
+            </div>
+            <!-- Relatórios and Por Status removed -->
+          </div>
+
+          <div id="quickFilters" style="margin-top: 14px">
+            <div style="font-weight: 700; margin-bottom: 8px">
+              Filtros Rápidos
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <input
+                id="q"
+                placeholder="Pesquisar por usuário / título"
+                type="text"
+              />
+              <select id="filterStatus">
+                <option value="">Todos os status</option>
+                <option>Aberto</option>
+                <option>Em Andamento</option>
+                <option>Resolvido</option>
+                <option>Pendente</option>
+              </select>
+              <select id="filterUrg">
+                <option value="">Todas urgências</option>
+                <option>Crítica</option>
+                <option>Alta</option>
+                <option>Média</option>
+                <option>Baixa</option>
+              </select>
+              <button class="btn" onclick="applyFilters()">Aplicar</button>
+            </div>
+          </div>
+
+          <div style="margin-top: 16px">
+            <div style="font-weight: 700; margin-bottom: 8px">Indicadores</div>
+            <div class="indicators">
+              <div class="kbd">Críticos: <b id="critCount">0</b></div>
+              <div class="kbd">Pendentes: <b id="pendCount">0</b></div>
+              <div class="kbd">SLA violados: <b id="slaCount">0</b></div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Main -->
+        <section>
+          <div id="view-fila" class="panel view">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <div>
+                <div style="font-weight: 800">Fila Prioritária</div>
+                <div style="color: var(--muted); font-size: 13px">
+                  Chamados ordenados por urgência e confiança da IA
+                </div>
+              </div>
+              <div style="display: flex; gap: 8px; align-items: center">
+                <button class="ghost" onclick="sortBy('urg')">
+                  Ordenar: Urgência
+                </button>
+                <button class="ghost" onclick="sortBy('updated')">
+                  Ordenar: Data
+                </button>
+              </div>
+            </div>
+
+            <div style="margin-top: 12px">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Usuário</th>
+                    <th>Título</th>
+                    <th>Urgência</th>
+                    <th>IA (confiança)</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="analystTable"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="view-todos" class="panel view" style="display: none">
+            <div style="font-weight: 800">Todos os Chamados</div>
+            <div class="muted" style="margin-top: 6px">
+              Lista completa — aplique filtros na barra lateral
+            </div>
+            <div style="margin-top: 12px">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Usuário</th>
+                    <th>Título</th>
+                    <th>Categoria</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="analystTableAll"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="view-pendentes" class="panel view" style="display: none">
+            <div style="font-weight: 800">Pendentes de Revisão</div>
+            <div style="margin-top: 12px">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Título</th>
+                    <th>Motivo</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="analystPending"></tbody>
+              </table>
+            </div>
+          </div>
+          <!-- Relatórios and Status views removed -->
+
+          <!-- Detalhes / drawer -->
+          <div
+            id="detailPanel"
+            class="panel"
+            style="margin-top: 12px; display: none"
+          >
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <div>
+                <div style="font-weight: 800" id="detailTitle">#</div>
+                <div
+                  style="color: var(--muted); font-size: 13px"
+                  id="detailMeta"
+                >
+                  Usuário • Categoria • Atualização
+                </div>
+              </div>
+              <div class="actions" id="detailActions"></div>
+            </div>
+
+            <div
+              style="
+                display: flex;
+                gap: 12px;
+                margin-top: 10px;
+                flex-wrap: wrap;
+              "
+            >
+              <div style="flex: 1">
+                <div style="font-weight: 700; margin-bottom: 6px">
+                  Descrição
+                </div>
+                <div
+                  style="
+                    background: rgba(255, 255, 255, 0.02);
+                    padding: 12px;
+                    border-radius: 8px;
+                  "
+                  id="detailDesc"
+                ></div>
+
+                <div style="margin-top: 10px">
+                  <div style="font-weight: 700; margin-bottom: 6px">
+                    Histórico / Interações
+                  </div>
+                  <div
+                    id="detailHistory"
+                    style="
+                      background: rgba(255, 255, 255, 0.02);
+                      padding: 10px;
+                      border-radius: 8px;
+                    "
+                  ></div>
+                </div>
+              </div>
+
+              <aside style="width: 320px">
+                <div style="font-weight: 700; margin-bottom: 6px">
+                  Sugestões da IA
+                </div>
+                <div class="ia-card" id="iaCard">
+                  <div>
+                    <b>Categoria sugerida:</b> <span id="iaCat">—</span>
+                  </div>
+                  <div style="margin-top: 6px">
+                    <b>Urgência sugerida:</b> <span id="iaUrg">—</span>
+                    <span class="muted" id="iaConf"></span>
+                  </div>
+                  <div style="margin-top: 8px">
+                    <b>Texto padronizado:</b>
+                    <div style="margin-top: 6px; font-size: 13px" id="iaText">
+                      —
+                    </div>
+                  </div>
+
+                  <div style="margin-top: 10px; display: flex; gap: 8px">
+                    <button class="btn" onclick="applyIASuggestion()">
+                      Aplicar
+                    </button>
+                    <button class="ghost" onclick="markPending()">
+                      Marcar Pendente
+                    </button>
+                  </div>
+                </div>
+
+                <div style="margin-top: 12px">
+                  <div style="font-weight: 700; margin-bottom: 6px">SLA</div>
+                  <div
+                    style="
+                      background: rgba(255, 255, 255, 0.02);
+                      padding: 10px;
+                      border-radius: 8px;
+                    "
+                  >
+                    <div>Resposta: <b id="slaResp">2h</b></div>
+                    <div style="margin-top: 6px">
+                      Resolução: <b id="slaRes">24h</b>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="margin-top: 12px">
+                  <div style="font-weight: 700; margin-bottom: 6px">
+                    Resposta rápida
+                  </div>
+                  <textarea
+                    id="quickResp"
+                    rows="4"
+                    style="
+                      width: 100%;
+                      padding: 8px;
+                      border-radius: 8px;
+                      background: transparent;
+                      border: 1px solid rgba(255, 255, 255, 0.03);
+                      color: #e6eef8;
+                    "
+                  ></textarea>
+                  <div style="display: flex; gap: 8px; margin-top: 8px">
+                    <button class="btn" onclick="sendReply()">Enviar</button>
+                    <button class="ghost" onclick="closeDetail()">
+                      Fechar
+                    </button>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script src="script_analista.js"></script>
+  </body>
+</html>
