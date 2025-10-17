@@ -52,6 +52,9 @@
             <div class="menu-item" onclick="showView('pendentes')">
               Pendentes de Revisão
             </div>
+            <div class="menu-item" onclick="showView('users')">
+              Gerenciar Usuários
+            </div>
             <!-- Relatórios and Por Status removed -->
           </div>
 
@@ -139,7 +142,26 @@
           <div id="view-todos" class="panel view" style="display: none">
             <div style="font-weight: 800">Todos os Chamados</div>
             <div class="muted" style="margin-top: 6px">
-              Lista completa — aplique filtros na barra lateral
+              Lista completa — use os filtros abaixo para buscar por usuário/título, status e urgência
+            </div>
+            <div style="margin-top:12px; display:flex; gap:8px; align-items:center">
+              <input id="ticket_q" type="text" placeholder="Pesquisar por usuário / título" style="flex:1; padding:8px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); background:transparent; color:#e6eef8" />
+              <select id="ticketStatusFilter" style="padding:8px; border-radius:8px; background:transparent; color:#e6eef8; border:1px solid rgba(255,255,255,0.04)">
+                <option value="">Todos os status</option>
+                <option>Aberto</option>
+                <option>Em Andamento</option>
+                <option>Resolvido</option>
+                <option>Pendente</option>
+              </select>
+              <select id="ticketUrgFilter" style="padding:8px; border-radius:8px; background:transparent; color:#e6eef8; border:1px solid rgba(255,255,255,0.04)">
+                <option value="">Todas urgências</option>
+                <option>Crítica</option>
+                <option>Alta</option>
+                <option>Média</option>
+                <option>Baixa</option>
+              </select>
+              <button class="btn" onclick="applyFilters()">Aplicar</button>
+              <button class="ghost" onclick="(function(){document.getElementById('ticket_q').value=''; document.getElementById('ticketStatusFilter').value=''; document.getElementById('ticketUrgFilter').value=''; applyFilters();})()">Limpar</button>
             </div>
             <div style="margin-top: 12px">
               <table>
@@ -171,6 +193,35 @@
                   </tr>
                 </thead>
                 <tbody id="analystPending"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="view-users" class="panel view" style="display: none">
+            <div style="font-weight: 800">Gerenciar Usuários</div>
+            <div class="muted" style="margin-top: 6px">Lista completa de usuários registrados. Use os filtros para localizar por nome, email ou papel.</div>
+            <div style="margin-top:12px; display:flex; gap:8px; align-items:center">
+              <input id="user_q" type="text" placeholder="Pesquisar por nome ou email" style="flex:1; padding:8px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); background:transparent; color:#e6eef8" />
+              <select id="userRoleFilter" style="padding:8px; border-radius:8px; background:transparent; color:#e6eef8; border:1px solid rgba(255,255,255,0.04)">
+                <option value="">Todos os papéis</option>
+                <option value="usuario">Usuário</option>
+                <option value="analista">Analista</option>
+              </select>
+              <button class="btn" onclick="applyUserFilters()">Aplicar</button>
+              <button class="ghost" onclick="(function(){document.getElementById('user_q').value=''; document.getElementById('userRoleFilter').value=''; renderUsersTable();})()">Limpar</button>
+            </div>
+            <div style="margin-top: 12px">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Papel</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="usersTable"></tbody>
               </table>
             </div>
           </div>

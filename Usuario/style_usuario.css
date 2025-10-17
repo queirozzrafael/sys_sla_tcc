@@ -315,3 +315,29 @@ footer {
     flex-direction: column;
   }
 }
+
+.btn-evaluate {
+  background: linear-gradient(135deg, #06b6d4, #60a5fa);
+  color: #fff;
+  font-weight: 700;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.btn-evaluate:hover {
+  background: linear-gradient(135deg, #60a5fa, #06b6d4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.btn-evaluate:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}

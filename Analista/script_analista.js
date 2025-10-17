@@ -195,18 +195,21 @@
             ? "view-todos"
             : id === "pendentes"
             ? "view-pendentes"
+            : id === "users"
+            ? "view-users"
             : "view-todos";
         const viewEl = document.getElementById(viewId);
         if (viewEl) viewEl.style.display = "block";
         // quickFilters visibility: hide on 'fila', show on 'todos'
         const quick = document.getElementById('quickFilters');
         if (quick) {
+          // sidebar quick filters are not used for the full 'todos' view (we have internal filters there)
           if (id === 'fila') quick.style.display = 'none';
-          else if (id === 'todos') quick.style.display = 'block';
           else quick.style.display = 'none';
         }
         // if showing the 'todos' view, refresh filters
         if (id === 'todos') applyFilters();
+        if (id === 'users') renderUsersTable();
         const detail = document.getElementById("detailPanel");
         if (detail) detail.style.display = "none";
         document.querySelectorAll(".menu-item").forEach((mi) => mi.classList.remove("active"));
@@ -227,17 +230,38 @@
         document.getElementById("detailDesc").innerText = t.desc;
         document.getElementById("detailHistory").innerText =
           t.history || "Sem histórico registrado.";
-        // IA card
-        document.getElementById("iaCat").innerText = t.cat;
-        document.getElementById("iaUrg").innerText = t.urg;
-        document.getElementById("iaConf").innerText = `(${Math.round(
-          t.iaConf * 100
-        )}% confiança)`;
-        document.getElementById("iaText").innerText = generateStandardText(t);
+  // IA card (ensure visible for ticket)
+  const iaCard = document.getElementById('iaCard');
+  if(iaCard){ iaCard.style.display = 'block'; document.getElementById("iaCat").innerText = t.cat; document.getElementById("iaUrg").innerText = t.urg; document.getElementById("iaConf").innerText = `(${Math.round(t.iaConf * 100)}% confiança)`; document.getElementById("iaText").innerText = generateStandardText(t); }
+  // ensure SLA and quick response are visible
+  const slaResp = document.getElementById('slaResp'); if(slaResp) slaResp.parentElement.style.display = ''; 
+  const quickResp = document.getElementById('quickResp'); if(quickResp) quickResp.parentElement.style.display = '';
         // actions
         const actionsEl = document.getElementById("detailActions");
-        if (actionsEl)
-          actionsEl.innerHTML = `<button class="btn" onclick="applyIASuggestion()">Aplicar IA</button><button class="ghost" onclick="markPending()">Marcar Pendente</button>`;
+        if (actionsEl) {
+          actionsEl.innerHTML = `
+            <select id="detailStatusSelect" style="padding:8px;border-radius:6px;background:transparent;border:1px solid rgba(255,255,255,0.06);color:#e6eef8;margin-right:8px">
+              <option>Aberto</option>
+              <option>Em Andamento</option>
+              <option>Resolvido</option>
+              <option>Pendente</option>
+            </select>
+            <button class="btn" id="btnChangeStatus">Alterar status</button>
+            
+          `;
+          // wire change status button to use the selected value
+          const btn = document.getElementById('btnChangeStatus');
+          if(btn){
+            btn.addEventListener('click', function(){
+              const sel = document.getElementById('detailStatusSelect');
+              const newStatus = sel ? sel.value : null;
+              if(newStatus) changeTicketStatus(t.id, newStatus);
+            });
+          }
+          // set current status as selected
+          const selInit = document.getElementById('detailStatusSelect');
+          if(selInit) selInit.value = t.status || 'Aberto';
+        }
         // store current id
         document.getElementById("detailPanel").dataset.current = id;
       }
@@ -285,6 +309,127 @@
         refreshIndicators();
       }
 
+      // ----- Ticket status management (new) -----
+      function changeTicketStatus(id, status) {
+        const t = tickets.find((x) => x.id === id);
+        if (!t) return alert('Chamado não encontrado');
+        t.status = status;
+        t.updated = new Date().toISOString().slice(0,10);
+        saveAnalystTickets();
+        renderAnalystTable();
+        computeSLA();
+        refreshIndicators();
+        if(document.getElementById('detailPanel').style.display === 'block'){
+          openDetail(id);
+        }
+      }
+
+      // ----- User management (new) -----
+      function loadRegisteredUsers(){
+        try{
+          const raw = localStorage.getItem('registeredUsers');
+          const parsed = raw ? JSON.parse(raw) : [];
+          // If no users registered yet, bootstrap demo users so the admin has entries to manage
+          if(!parsed || parsed.length === 0){
+            const demo = [
+              { name: 'Joao', email: 'joao@gmail.com', password: 'Joao123', role: 'analista' },
+              { name: 'Gabriel', email: 'gabriel@gmail.com', password: 'Gabriel123', role: 'usuario' }
+            ];
+            try{ localStorage.setItem('registeredUsers', JSON.stringify(demo)); }catch(e){}
+            return demo;
+          }
+          return parsed;
+        }catch(e){ console.warn('failed to load users', e); return []; }
+      }
+
+      function saveRegisteredUsers(list){
+        try{ localStorage.setItem('registeredUsers', JSON.stringify(list)); }catch(e){ console.warn('failed to save users', e); }
+      }
+
+      function renderUsersTable(){
+        const allUsers = loadRegisteredUsers();
+        // apply filters from DOM
+        const qEl = document.getElementById('user_q');
+        const roleEl = document.getElementById('userRoleFilter');
+        const query = qEl ? qEl.value.trim().toLowerCase() : '';
+        const roleFilter = roleEl ? roleEl.value : '';
+        const users = allUsers.filter(u => {
+          if(roleFilter && (u.role||'') !== roleFilter) return false;
+          if(!query) return true;
+          const needle = query;
+          return ((u.name||'') + ' ' + (u.email||'')).toLowerCase().includes(needle);
+        });
+        const tbody = document.getElementById('usersTable');
+        if(!tbody) return;
+        tbody.innerHTML = '';
+        users.forEach((u, idx) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${idx+1}</td>
+            <td>${u.name || '-'}</td>
+            <td>${u.email || '-'}</td>
+            <td>${u.role || 'usuario'}</td>
+            <td></td>
+          `;
+          const actionTd = tr.querySelector('td:last-child');
+          const btnView = document.createElement('button');
+          btnView.className = 'btn';
+          btnView.textContent = 'Ver';
+          btnView.addEventListener('click', function(){ window.openUser(u.email); });
+          actionTd.appendChild(btnView);
+          tbody.appendChild(tr);
+        });
+      }
+
+      // helpers exposed for onclicks
+      window.changeTicketStatus = changeTicketStatus;
+
+      window.promoteUser = function(email, newRole){
+        const users = loadRegisteredUsers();
+        const u = users.find(x => (x.email||'').toLowerCase() === (email||'').toLowerCase());
+        if(!u) return alert('Usuário não encontrado');
+        u.role = newRole;
+        saveRegisteredUsers(users);
+        renderUsersTable();
+        alert('Papel do usuário atualizado.');
+      };
+
+      window.removeUser = function(email){
+        if(!confirm('Remover usuário? Essa ação não pode ser desfeita (apenas para o protótipo).')) return;
+        let users = loadRegisteredUsers();
+        users = users.filter(x => (x.email||'').toLowerCase() !== (email||'').toLowerCase());
+        saveRegisteredUsers(users);
+        renderUsersTable();
+        alert('Usuário removido.');
+      };
+
+      // apply filters UI for users
+      function applyUserFilters(){
+        renderUsersTable();
+      }
+      window.applyUserFilters = applyUserFilters;
+
+      // open user details into the existing detail panel
+      window.openUser = function(email){
+        const users = loadRegisteredUsers();
+        const u = users.find(x => (x.email||'').toLowerCase() === (email||'').toLowerCase());
+        if(!u) return alert('Usuário não encontrado');
+        const panel = document.getElementById('detailPanel');
+        if(!panel) return;
+        panel.style.display = 'block';
+        document.getElementById('detailTitle').innerText = `Usuário — ${u.name || u.email}`;
+        document.getElementById('detailMeta').innerText = `${u.email} • Papel: ${u.role || 'usuario'}`;
+        document.getElementById('detailDesc').innerText = `Nome: ${u.name || '-'}\nEmail: ${u.email || '-'}\nPapel: ${u.role || 'usuario'}`;
+        document.getElementById('detailHistory').innerText = u.history || 'Sem histórico.';
+        const actionsEl = document.getElementById('detailActions');
+        if(actionsEl) actionsEl.innerHTML = `<button class="btn" onclick="(function(){navigator.clipboard && navigator.clipboard.writeText('${u.email}'); alert('Email copiado');})()">Copiar Email</button><button class="ghost" onclick="closeDetail()">Fechar</button>`;
+  // hide IA / SLA / quick response when viewing a user
+  const iaCard = document.getElementById('iaCard'); if(iaCard) iaCard.style.display = 'none';
+  const slaResp = document.getElementById('slaResp'); if(slaResp) slaResp.parentElement.style.display = 'none';
+  const quickResp = document.getElementById('quickResp'); if(quickResp) quickResp.parentElement.style.display = 'none';
+  panel.dataset.current = `user:${u.email}`;
+      };
+
       function sendReply() {
         const id = parseInt(
           document.getElementById("detailPanel").dataset.current
@@ -304,9 +449,10 @@
       }
 
       function applyFilters() {
-        const qEl = document.getElementById("q");
-        const urgEl = document.getElementById("filterUrg");
-        const statusEl = document.getElementById("filterStatus");
+  // prefer the ticket filters embedded in the 'Todos os Chamados' view when present
+  const qEl = document.getElementById('ticket_q') || document.getElementById("q");
+  const urgEl = document.getElementById('ticketUrgFilter') || document.getElementById("filterUrg");
+  const statusEl = document.getElementById('ticketStatusFilter') || document.getElementById("filterStatus");
         const query = qEl ? qEl.value.trim().toLowerCase() : "";
         const urg = urgEl ? urgEl.value : "";
         const status = statusEl ? statusEl.value : "";
@@ -351,6 +497,8 @@
       renderAnalystTable();
       computeSLA();
       refreshIndicators();
+  // ensure users table is available (bootstraps demo users if none)
+  try{ renderUsersTable(); }catch(e){}
       // hide quick filters by default (we start on fila)
       const quick = document.getElementById('quickFilters');
       if (quick) quick.style.display = 'none';
