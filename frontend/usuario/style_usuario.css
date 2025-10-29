@@ -255,6 +255,7 @@ th {
   border-radius: 12px;
   min-width: 320px;
   max-width: 720px;
+  width: 90%; /* Adicionado para melhor responsividade */
   box-shadow: 0 12px 30px rgba(2, 6, 23, 0.18);
 }
 
@@ -314,4 +315,64 @@ footer {
   .cards {
     flex-direction: column;
   }
+}
+    
+.conversa-historico {
+  max-height: 300px;
+  overflow-y: auto;
+  background: #f9fafb;
+  border: 1px solid #eef2f7;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-item {
+  padding: 10px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid #eef2f7;
+  box-shadow: 0 2px 4px rgba(2, 6, 23, 0.04);
+  max-width: 85%;
+}
+
+.history-item .author {
+  font-weight: 700;
+  font-size: 13px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.history-item .comment-body {
+  font-size: 14px;
+  white-space: pre-wrap; 
+}
+
+.history-item .date {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 6px;
+  display: block;
+}
+
+
+.history-item.role-analista {
+  background: #f0f9ff; 
+  border-color: #dbeafe;
+  align-self: flex-start; 
+}
+.history-item.role-analista .author {
+  color: #0c4a6e; 
+}
+
+
+.history-item.role-usuario {
+  background: #f0fdf4; 
+  border-color: #dcfce7;
+  align-self: flex-end; 
+}
+.history-item.role-usuario .author {
+  color: #15803d; 
 }
