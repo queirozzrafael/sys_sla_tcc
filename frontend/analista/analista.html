@@ -36,7 +36,6 @@
 
     <main class="container">
       <div class="grid">
-        <!-- Sidebar -->
         <aside class="panel">
           <div style="font-weight: 700; margin-bottom: 8px">
             Filtrar Chamados
@@ -52,8 +51,7 @@
             <div class="menu-item" onclick="showView('pendentes')">
               Pendentes de Revisão
             </div>
-            <!-- Relatórios and Por Status removed -->
-          </div>
+            </div>
 
           <div id="quickFilters" style="margin-top: 14px">
             <div style="font-weight: 700; margin-bottom: 8px">
@@ -93,7 +91,6 @@
           </div>
         </aside>
 
-        <!-- Main -->
         <section>
           <div id="view-fila" class="panel view">
             <div
@@ -174,9 +171,6 @@
               </table>
             </div>
           </div>
-          <!-- Relatórios and Status views removed -->
-
-          <!-- Detalhes / drawer -->
           <div
             id="detailPanel"
             class="panel"
@@ -255,15 +249,6 @@
                       —
                     </div>
                   </div>
-
-                  <div style="margin-top: 10px; display: flex; gap: 8px">
-                    <button class="btn" onclick="applyIASuggestion()">
-                      Aplicar
-                    </button>
-                    <button class="ghost" onclick="markPending()">
-                      Marcar Pendente
-                    </button>
-                  </div>
                 </div>
 
                 <div style="margin-top: 12px">
@@ -282,6 +267,20 @@
                   </div>
                 </div>
 
+                <div style="margin-top: 12px">
+                  <div style="font-weight: 700; margin-bottom: 6px">
+                    Alterar Status
+                  </div>
+                  <div style="display: flex; gap: 8px;">
+                    <select id="detailStatus" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.04); background: transparent; color: #e6eef8;">
+                      <option>Aberto</option>
+                      <option>Em Andamento</option>
+                      <option>Pendente</option>
+                      <option>Resolvido</option>
+                    </select>
+                    <button class="btn" onclick="updateTicketStatus()">Salvar</button>
+                  </div>
+                </div>
                 <div style="margin-top: 12px">
                   <div style="font-weight: 700; margin-bottom: 6px">
                     Resposta rápida

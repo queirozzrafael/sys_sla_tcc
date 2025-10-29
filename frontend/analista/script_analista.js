@@ -153,7 +153,9 @@ async function openDetail(id) {
 
   document.getElementById("detailPanel").style.display = "block";
   document.getElementById("detailTitle").innerText = `#${t.id} — ${t.title}`;
-  document.getElementById("detailMeta").innerText = `${t.user} • ${t.cat} • Atualizado: ${t.updated}`;
+  
+  document.getElementById("detailMeta").innerText = `Status: ${t.status} • ${t.user} • ${t.cat} • Atualizado: ${t.updated}`;
+
   document.getElementById("detailDesc").innerText = t.desc; 
 
   document.getElementById("iaCat").innerText = t.cat;
@@ -161,9 +163,11 @@ async function openDetail(id) {
   document.getElementById("iaConf").innerText = `(${Math.round((t.iaConf || 0.5) * 100)}% confiança)`;
   document.getElementById("iaText").innerText = generateStandardText(t);
 
+  document.getElementById("detailStatus").value = t.status;
+
   const actionsEl = document.getElementById("detailActions");
   if (actionsEl)
-    actionsEl.innerHTML = `<button class="btn" onclick="applyIASuggestion()">Aplicar IA</button><button class="ghost" onclick="markPending()">Marcar Pendente</button>`;
+    actionsEl.innerHTML = ``; 
 
   document.getElementById("detailPanel").dataset.current = id;
 
@@ -226,32 +230,37 @@ function applyIASuggestion() {
   alert("Sugestão da IA aplicada ao ticket (simulação).");
 }
 
-async function markPending() {
+async function updateTicketStatus() {
   const id = parseInt(document.getElementById("detailPanel").dataset.current);
+  const newStatus = document.getElementById("detailStatus").value;
   const t = tickets.find((x) => x.id === id);
-  if (!t) return;
+  
+  if (!t) return alert("Erro: Chamado não encontrado.");
+  if (t.status === newStatus) return alert("O chamado já está com esse status.");
 
   try {
     const response = await fetch(`http://localhost:3000/api/tickets/${id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ newStatus: 'Pendente' })
+        body: JSON.stringify({ newStatus: newStatus })
     });
     const data = await response.json();
     
     if (!data.success) throw new Error(data.message);
 
-    t.status = "Pendente"; 
-    alert("Chamado marcado como Pendente.");
+    t.status = newStatus; 
+    alert("Status do chamado atualizado para: " + newStatus);
 
+    document.getElementById("detailMeta").innerText = `Status: ${t.status} • ${t.user} • ${t.cat} • Atualizado: ${t.updated}`;
     renderAnalystTable(); 
     computeSLA();
     refreshIndicators();
     
   } catch (e) {
-      alert("Erro ao marcar como pendente: " + (e.message || 'Erro desconhecido.'));
+      alert("Erro ao atualizar status: " + (e.message || 'Erro desconhecido.'));
   }
 }
+
 
 async function sendReply() {
   const id = parseInt(document.getElementById("detailPanel").dataset.current);

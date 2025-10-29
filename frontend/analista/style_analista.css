@@ -187,3 +187,16 @@
           grid-template-columns: 1fr;
         }
       }
+
+      .btn-resolver {
+        background: #059669; 
+        color: #fff;
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 0;
+        cursor: pointer;
+        font-weight: 700;
+      }
+      .btn-resolver:hover {
+        background: #047857;
+      }

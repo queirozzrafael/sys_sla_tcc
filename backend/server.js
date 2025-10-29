@@ -10,21 +10,24 @@ app.use(express.json());
 const dbConfig = {
     host: 'localhost',
     user: 'root', 
-    password: 'senhaGenerica', // Coloque a senha do MySql aqui
+    password: 'SenhaGenerica', // Coloque a senha do MySql aqui
     database: 'meu_tcc_db'        
 };
 
 
-// Rota de Login
+
 app.post('/login', async (req, res) => {
     const { email, password, role } = req.body;
 
     try {
         const connection = await mysql.createConnection(dbConfig);
+        
         const [rows] = await connection.execute(
-            'SELECT * FROM Users WHERE email = ? AND password = ? AND role = ?',
+            'SELECT * FROM Users WHERE email = ? AND BINARY password = ? AND role = ?',
             [email, password, role]
         );
+
+
         await connection.end();
 
         if (rows.length > 0) {
@@ -39,6 +42,50 @@ app.post('/login', async (req, res) => {
         res.status(500).json({ success: false, message: 'Erro no servidor.' });
     }
 });
+
+app.post('/register', async (req, res) => {
+    const { name, email, password, role } = req.body;
+
+    if (!name || !email || !password || !role) {
+        return res.status(400).json({ 
+            success: false, 
+            message: 'Todos os campos (nome, email, senha, perfil) são obrigatórios.' 
+        });
+    }
+
+    try {
+        const connection = await mysql.createConnection(dbConfig);
+        
+        const [existing] = await connection.execute(
+            'SELECT id FROM Users WHERE email = ?',
+            [email]
+        );
+
+        if (existing.length > 0) {
+            await connection.end();
+            return res.status(409).json({ success: false, message: 'Este email já está cadastrado.' });
+        }
+
+        const [result] = await connection.execute(
+            'INSERT INTO Users (name, email, password, role) VALUES (?, ?, ?, ?)',
+            [name, email, password, role]
+        );
+        
+        await connection.end();
+
+        res.json({ success: true, userId: result.insertId, message: 'Usuário cadastrado com sucesso!' });
+
+    } catch (error) {
+        console.error("Erro no cadastro:", error);
+        
+        if (error.code === 'ER_TRUNCATED_WRONG_VALUE_FOR_FIELD') {
+             return res.status(400).json({ success: false, message: 'Perfil (role) inválido. Use "usuario" ou "analista".' });
+        }
+
+        res.status(500).json({ success: false, message: 'Erro interno no servidor ao tentar cadastrar.' });
+    }
+});
+
 
 app.get('/api/tickets/analyst', async (req, res) => {
     try {
