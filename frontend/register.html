@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Cadastro - Sistema de Chamados</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/index.css"> </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        
+        <div>
+          <div class="brand">
+            <div class="logo">SI</div>
+            <div>
+              <h1>Criar Nova Conta</h1>
+              <div class="meta">Sistema Inteligente de Chamados</div>
+            </div>
+          </div>
+
+          <div class="login-card">
+            <div class="role-tabs">
+              <button id="tabUser" class="tab active">Sou Usuário</button>
+              <button id="tabAnalyst" class="tab">Sou Analista</button>
+            </div>
+
+            <form id="registerForm">
+              <label for="name">Nome Completo</label>
+              <input id="name" name="name" type="text" placeholder="Seu nome completo" required />
+
+              <label for="email">Email</label>
+              <input id="email" name="email" type="email" placeholder="seuemail@gmail.com" required />
+
+              <label for="password">Senha</label>
+              <div style="display:flex;align-items:center;gap:8px">
+                <input id="password" name="password" type="password" required style="flex:1" />
+                <button type="button" id="btnTogglePwd" title="Mostrar senha" style="background:transparent;border:0;color:#fff;cursor:pointer;padding:6px">👁️</button>
+              </div>
+
+              <div style="display:flex; gap:8px; margin-top:10px">
+                <button type="submit" class="btn-large" style="flex:1">Cadastrar</button>
+              </div>
+
+              <div id="registerError" style="color:#c00; margin-top:8px; display:none; background: rgba(255,0,0,0.1); padding: 8px; border-radius: 6px;"></div>
+              <div id="registerSuccess" style="color:#0a0; margin-top:8px; display:none; background: rgba(0,255,0,0.1); padding: 8px; border-radius: 6px;"></div>
+            </form>
+            
+            <div style="margin-top: 15px;">
+              <a href="index.html" class="btn-ghost" style="text-decoration: none; display: inline-block; text-align: center; width: 100%;">
+                Já tenho conta? Fazer Login
+              </a>
+            </div>
+
+          </div>
+
+          <footer>
+            Projeto de Protótipo • Sistema Inteligente de Chamados
+          </footer>
+        </div>
+
+        <div class="right">
+          <div style="font-weight: 700">Recursos</div>
+          <ul class="features">
+            <li>Crie chamados e veja o status em tempo real</li>
+            <li>A IA sugere categoria e urgência</li>
+            <li>Painel do analista com fila priorizada</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="register.js"></script> </html>
